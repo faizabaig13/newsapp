@@ -1,131 +1,87 @@
 import Head from 'next/head';
-import axios from 'axios';
-import moment from 'moment';
-import { useState, useEffect } from 'react';
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Container,
-  Grid,
-  Card,
-  CardHeader,
-  CardMedia,
-  CardContent,
-  CardActions,
-  Button,
-} from '@material-ui/core';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
-export default function Home() {
+const Home = () => {
   const [articles, setArticles] = useState([]);
-  const [latestNews, setLatestNews] = useState({});
- const API_KEY = "4ea0b5b773074658b628bcf8545614b2"
+  const [isLoading, setIsLoading] = useState(true);
+  const [latestArticle, setLatestArticle] = useState(null);
+
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const response = await axios.get(
-          `https://newsapi.org/v2/top-headlines?country=us&apiKey=${API_KEY}`
-        );
-        setArticles(response.data.articles);
-        setLatestNews(response.data.articles[0]);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    }
-    fetchData();
+    fetchNews();
   }, []);
+
+  const fetchNews = async () => {
+    try {
+      const response = await fetch(
+        'https://newsapi.org/v2/top-headlines?country=us&apiKey=4ea0b5b773074658b628bcf8545614b2'
+      );
+      const data = await response.json();
+      setArticles(data.articles);
+      setLatestArticle(data.articles[0]);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching news:', error);
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div>
       <Head>
         <title>News App</title>
-        <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <AppBar position="static" style={{ backgroundColor: '#8B0000' }}>
-        <Toolbar>
-          <Typography variant="h6">News App</Typography>
-        </Toolbar>
-      </AppBar>
+      <div className="container mx-auto">
+        <h1 className="text-4xl font-bold text-center my-8">Latest News</h1>
 
-      <div
-        style={{
-          height: '300px',
-          backgroundColor: '#ddd',
-          position: 'relative',
-        }}
-      >
-        <img
-          src={latestNews.urlToImage}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          alt={latestNews.title}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Typography
-            variant="h2"
-            color="white"
-            style={{ color: 'white' }}
-          >
-            Catch the latest News!
-          </Typography>
-        </div>
+        {isLoading ? (
+          <div className="text-center">Loading...</div>
+        ) : (
+          <>
+            {latestArticle && (
+              <div className="mb-8">
+                <Link href={`/news/${latestArticle.id}`}>
+                  <a>
+                    <img
+                      src={latestArticle.urlToImage}
+                      alt={latestArticle.title}
+                      className="w-full h-64 object-cover rounded shadow-lg"
+                    />
+                    <h2 className="text-2xl font-bold mt-2">
+                      {latestArticle.title}
+                    </h2>
+                    <p>{latestArticle.content}</p>
+                  </a>
+                </Link>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {articles.map((article) => (
+                <div
+                  key={article.id}
+                  className="bg-white rounded shadow p-4 hover:shadow-lg"
+                >
+                  <Link href={`/news/${article.id}`}>
+                    <a>
+                      <img
+                        src={article.urlToImage}
+                        alt={article.title}
+                        className="w-full h-48 object-cover rounded mb-4"
+                      />
+                      <h2 className="text-lg font-bold">{article.title}</h2>
+                      <p className="text-gray-500">{article.description}</p>
+                    </a>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
+    </div>
+  );
+};
 
-      <div style={{ textAlign: 'center', padding: '10px' }}></div>
-
-      <Container maxWidth="md">
-        <Grid container spacing={4}>
-          {articles.map((article) => (
-            <Grid item xs={12} sm={6} md={4} key={article.url}>
-              <Card style={{ height: '100%' }}>
-                <CardHeader
-                  title={article.title}
-                  subheader={moment(article.publishedAt).format('LLL')}
-                />
-                <CardMedia
-                  component="img"
-                  style={{ height: '200px', objectFit: 'cover' }}
-                  image={article.urlToImage}
-                  alt={article.title}
-                />
-                <CardContent>
-                  <Typography
-                    variant="body2"
-                    color="textSecondary"
-                    component="p"
-                  >
-                    {article.description}
-                  </Typography>
-                </CardContent>
-                <CardActions>
-                  <Button size="small" color="primary" href={article.url}>
-                    Read More
-                  </Button>
-                </CardActions>
-              </Card>
-            </Grid>
-         
-         ))}
-         </Grid>
-       </Container>
- 
-       <footer style={{ backgroundColor: '#ddd', padding: '1rem', textAlign: 'center' }}>
-         <Typography variant="body1">News App &copy; {new Date().getFullYear()}</Typography>
-       </footer>
-     </div>
-   );
- }
- 
+export default Home;

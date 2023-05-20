@@ -13,13 +13,7 @@ const Toolbar = () => {
       <Link href="/editor">
         <a>Editor</a>
       </Link>
-      <a
-        href="https://twitter.com/SirKamara"
-        target="_blank"
-        rel="noreferrer noopener"
-      >
-        Twitter
-      </a>
+
     </div>
   );
 };
